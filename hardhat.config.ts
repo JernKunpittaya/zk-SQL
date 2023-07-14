@@ -1,12 +1,12 @@
 import { task } from "hardhat/config";
-import '@typechain/hardhat'
-import '@nomiclabs/hardhat-ethers'
+import "@typechain/hardhat";
+import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 
 const dotenv = require("dotenv");
-dotenv.config({path: __dirname + '/.env'});
+dotenv.config({ path: __dirname + "/.env" });
 
-const {HARMONY_PRIVATE_KEY} = process.env;
+const { SEPOLIA_PRIVATE_KEY } = process.env;
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -16,22 +16,12 @@ module.exports = {
   networks: {
     hardhat: {
       gas: 100000000,
-      blockGasLimit: 0x1fffffffffffff
+      blockGasLimit: 0x1fffffffffffff,
     },
     testnet: {
-      url: "https://api.s0.b.hmny.io",
-      chainId: 1666700000,
-      accounts: [`${HARMONY_PRIVATE_KEY}`]
-    },
-    devnet: {
-      url: "https://api.s0.ps.hmny.io",
-      chainId: 1666900000,
-      accounts: [`${HARMONY_PRIVATE_KEY}`]
-    },
-    mainnet: {
-      url: "https://api.s0.t.hmny.io",
-      chainId: 1666600000,
-      accounts: [`${HARMONY_PRIVATE_KEY}`]
+      url: "https://eth-sepolia.g.alchemy.com/v2/KoQXj-94RYgkSZkTu1cYBpVllMAXct4K",
+      chainId: 11155111,
+      accounts: [`${SEPOLIA_PRIVATE_KEY}`],
     },
   },
   paths: {
@@ -41,10 +31,10 @@ module.exports = {
     artifacts: "./lib/artifacts",
   },
   typechain: {
-    outDir: './lib/types/typechain',
-    target: 'ethers-v5',
+    outDir: "./lib/types/typechain",
+    target: "ethers-v5",
   },
   mocha: {
-    timeout: 100000000
+    timeout: 100000000,
   },
 };

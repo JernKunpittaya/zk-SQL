@@ -20,7 +20,7 @@
     "ethereum-waffle": "^3.4.4",
     "ethers": "^5.6.9",
     "node-sql-parser": "^4.3.0",
-    "snarkjs": "^0.4.22",
+    "snarkjs": "git+https://github.com/vb7401/snarkjs.git#24981febe8826b6ab76ae4d76cf7f9142919d2b8",
     "sql.js": "^1.7.0",
     "typechain": "^8.1.0"
   },

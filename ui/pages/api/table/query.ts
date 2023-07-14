@@ -1,12 +1,14 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import {getSqlRequest} from "zk-sql/client/client";
-import {clientConfig, getClientConfig} from "../config";
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { getSqlRequest } from 'zk-sql/client/client';
+import { clientConfig, getClientConfig } from '../config';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const {sql, tableCommit, token} = JSON.parse(req.body);
-
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const { sql, tableCommit, token } = JSON.parse(req.body);
   try {
-    await getClientConfig()
+    await getClientConfig();
   } catch (e) {
     res.json({
       ready: false,
@@ -14,10 +16,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return;
   }
-
+  // console.log('sql query: ', sql);
+  // console.log('tableco query: ', tableCommit);
+  // console.log('token query: ', token);
+  // console.log('clnconf query: ', clientConfig);
   try {
-    const {ready, type, selected, changeCommit, proof, error, publicSignals} = await getSqlRequest(sql, tableCommit, token, clientConfig);
-
+    const { ready, type, selected, changeCommit, proof, error, publicSignals } =
+      await getSqlRequest(sql, tableCommit, token, clientConfig);
     if (!ready) {
       res.json({
         ready: false,
@@ -25,12 +30,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return;
     }
-
+    console.log('errorr query.ts: ', error);
     if (error != null) {
       res.json({
         ready: true,
-        error: error.split('\n')[0]
-      })
+        error: error.split('\n')[0],
+      });
 
       return;
     }
@@ -45,10 +50,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       const values = selected.values.map((row) => {
-        return Object.fromEntries(Array.from(
-            row.values.entries(),
-          ([index, v]) => [selected.columns.at(index), v])
-        )});
+        return Object.fromEntries(
+          Array.from(row.values.entries(), ([index, v]) => [
+            selected.columns.at(index),
+            v,
+          ])
+        );
+      });
 
       res.json({
         ready: true,
@@ -71,13 +79,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
   } catch (error: any) {
-    console.log("query error:", error);
+    console.log('query error:', error);
     res.status(500).json({
       error: error.toString().split('\n')[0],
-    })
+    });
   }
 }
 
 function formatPublicSignals(sigs: bigint[]): string[] {
-  return sigs.map((s) => String(s))
+  return sigs.map((s) => String(s));
 }

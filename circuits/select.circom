@@ -33,6 +33,8 @@ template SELECT(nColumns, nRows, nAND, nOR) {
     }
 
     // Check that the table corresponds to the commitment
+    log("tableCommit", tableCommit);
+    log("hasher out: ", hasher.out);
     hasher.out === tableCommit;
 
     component isFilterColumn[nRows][nOR][nColumns];

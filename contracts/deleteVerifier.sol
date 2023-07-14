@@ -21,93 +21,110 @@
 
 pragma solidity >=0.7.0 <0.9.0;
 
+import "hardhat/console.sol";
+
 contract PlonkVerifier {
+    // Omega
+    uint256 constant w1 = 20619701001583904760601357484951574588621083236087856586626117568842480512645;    
+    // Scalar field size
+    uint256 constant q  = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    // Base field size
+    uint256 constant qf = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
     
-    uint32 constant n =   16384;
-    uint16 constant nPublic =  3;
+    // [1]_1
+    uint256 constant G1x = 1;
+    uint256 constant G1y = 2;
+    // [1]_2
+    uint256 constant G2x1 = 10857046999023057135944570762232829481370756359578518086990519993285655852781;
+    uint256 constant G2x2 = 11559732032986387107991004021392285783925812861821192530917403151452391805634;
+    uint256 constant G2y1 = 8495653923123431417604973247489272438418190587263600148770280649306958101930;
+    uint256 constant G2y2 = 4082367875863433681332203403145435568316851327593401208105741076214120093531;
+    
+    // Verification Key data
+    uint32 constant n         = 16384;
+    uint16 constant nPublic   = 3;
     uint16 constant nLagrange = 3;
     
-    uint256 constant Qmx = 13410299411032414749226359873326545626887233941784035447054421977782381487871;
-    uint256 constant Qmy = 1609673259604916576759070310507100188557496440933698440660619692625218809226;
-    uint256 constant Qlx = 12355239505060853803049574906032434173174781409412080425362284682500407146476;
-    uint256 constant Qly = 13573233092005533737789934205609419149190584164420492273107873696805655065462;
-    uint256 constant Qrx = 19903822010845997725438732912307669258401779305782211389328672764588038157651;
-    uint256 constant Qry = 15638011268012614396210849921612854587774452221312711405674600602907641002312;
-    uint256 constant Qox = 13563805750278804454843170873200852244675060272959915772739661509556335594942;
-    uint256 constant Qoy = 16776770184641975591095878649364680995665216643978752919818061600663462365233;
-    uint256 constant Qcx = 11490919899845387924833850695594922530512890326969854568305604649695970481963;
-    uint256 constant Qcy = 9547566705398028843089570356589298906429453507943257780055687415099482397283;
-    uint256 constant S1x = 15328803379126936831572337949031735105051900604966305832808303266572187430371;
-    uint256 constant S1y = 17464073497052494064193532788271700855527130703226531723077252562919889295890;
-    uint256 constant S2x = 4733880835732143022181707794232003193430853847936333101364304975561322469548;
-    uint256 constant S2y = 10570560631096931960462235480483314996611866142138368469099421033836898663874;
-    uint256 constant S3x = 15179782030728334069510289156312924585547752096588221483600019297707647217870;
-    uint256 constant S3y = 14408185349312568378049485927553542629327637457252321639693594136147240003362;
-    uint256 constant k1 = 2;
-    uint256 constant k2 = 3;
+    uint256 constant Qmx  = 20253961003836909540280741842228521759694224793119019165028336166970409585506;
+    uint256 constant Qmy  = 9782520078445060858749820227046666949288875695301924188063119259889446650777;
+    uint256 constant Qlx  = 21827942137049792708762907518241268519408098595896478615291690848540884639164;
+    uint256 constant Qly  = 18407073075986680896815926372279394279679817186864241927246807659023327661143;
+    uint256 constant Qrx  = 13764499318195704883400938992820505736145779519878857313918012983982848191433;
+    uint256 constant Qry  = 4136066343259931236592675316243237183973686779161817872674369714467380886636;
+    uint256 constant Qox  = 5651846523675459610084104090696247240255997047451187404948057576830466083762;
+    uint256 constant Qoy  = 8837570624638428436471776010744410116446405888014488148085935066189491264379;
+    uint256 constant Qcx  = 5834701693913158178076486853620074275671164884417212204555729860164792643779;
+    uint256 constant Qcy  = 19066917977253890541979101582478478302613261819560116014323045049464130066094;
+    uint256 constant S1x  = 2238269587176530582111797169273239528363876204565666204577094885284362545418;
+    uint256 constant S1y  = 12893289044144465748997706889086787972096506120072209401753404483248442086444;
+    uint256 constant S2x  = 7126540030185736804254034747678526870541110617048647633299934443240551197010;
+    uint256 constant S2y  = 21870015758410484332268168544889119485695887675558519628128794730271029122064;
+    uint256 constant S3x  = 16948699707663536277992422690210394988687602472204198558110639945459891002051;
+    uint256 constant S3y  = 20926429810598026176364442800338455264393776913209649460201796552961059188894;
+    uint256 constant k1   = 2;
+    uint256 constant k2   = 3;
     uint256 constant X2x1 = 21831381940315734285607113342023901060522397560371972897001948545212302161822;
     uint256 constant X2x2 = 17231025384763736816414546592865244497437017442647097510447326538965263639101;
     uint256 constant X2y1 = 2388026358213174446665280700919698872609886601280537296205114254867301080648;
     uint256 constant X2y2 = 11507326595632554467052522095592665270651932854513688777769618397986436103170;
     
-    uint256 constant q = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
-    uint256 constant qf = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
-    uint256 constant w1 = 20619701001583904760601357484951574588621083236087856586626117568842480512645;    
+    // Proof calldata
+    // Byte offset of every parameter of the calldata
+    // Polynomial commitments
+    uint16 constant pA       = 4 + 0;
+    uint16 constant pB       = 4 + 64;
+    uint16 constant pC       = 4 + 128;
+    uint16 constant pZ       = 4 + 192;
+    uint16 constant pT1      = 4 + 256;
+    uint16 constant pT2      = 4 + 320;
+    uint16 constant pT3      = 4 + 384;
+    uint16 constant pWxi     = 4 + 448;
+    uint16 constant pWxiw    = 4 + 512;
+    // Opening evaluations
+    uint16 constant pEval_a  = 4 + 576;
+    uint16 constant pEval_b  = 4 + 608;
+    uint16 constant pEval_c  = 4 + 640;
+    uint16 constant pEval_s1 = 4 + 672;
+    uint16 constant pEval_s2 = 4 + 704;
+    uint16 constant pEval_zw = 4 + 736;
     
-    uint256 constant G1x = 1;
-    uint256 constant G1y = 2;
-    uint256 constant G2x1 = 10857046999023057135944570762232829481370756359578518086990519993285655852781;
-    uint256 constant G2x2 = 11559732032986387107991004021392285783925812861821192530917403151452391805634;
-    uint256 constant G2y1 = 8495653923123431417604973247489272438418190587263600148770280649306958101930;
-    uint256 constant G2y2 = 4082367875863433681332203403145435568316851327593401208105741076214120093531;
-    uint16 constant pA = 32;
-    uint16 constant pB = 96;
-    uint16 constant pC = 160;
-    uint16 constant pZ = 224;
-    uint16 constant pT1 = 288;
-    uint16 constant pT2 = 352;
-    uint16 constant pT3 = 416;
-    uint16 constant pWxi = 480;
-    uint16 constant pWxiw = 544;
-    uint16 constant pEval_a = 608;
-    uint16 constant pEval_b = 640;
-    uint16 constant pEval_c = 672;
-    uint16 constant pEval_s1 = 704;
-    uint16 constant pEval_s2 = 736;
-    uint16 constant pEval_zw = 768;
-    uint16 constant pEval_r = 800;
-    
-    uint16 constant pAlpha = 0;
-    uint16 constant pBeta = 32;
-    uint16 constant pGamma = 64;
-    uint16 constant pXi = 96;
-    uint16 constant pXin = 128;
+    // Memory data
+    // Challenges
+    uint16 constant pAlpha  = 0;
+    uint16 constant pBeta   = 32;
+    uint16 constant pGamma  = 64;
+    uint16 constant pXi     = 96;
+    uint16 constant pXin    = 128;
     uint16 constant pBetaXi = 160;
-    uint16 constant pV1 = 192;
-    uint16 constant pV2 = 224;
-    uint16 constant pV3 = 256;
-    uint16 constant pV4 = 288;
-    uint16 constant pV5 = 320;
-    uint16 constant pV6 = 352;
-    uint16 constant pU = 384;
-    uint16 constant pPl = 416;
-    uint16 constant pEval_t = 448;
-    uint16 constant pA1 = 480;
-    uint16 constant pB1 = 544;
-    uint16 constant pZh = 608;
-    uint16 constant pZhInv = 640;
+    uint16 constant pV1     = 192;
+    uint16 constant pV2     = 224;
+    uint16 constant pV3     = 256;
+    uint16 constant pV4     = 288;
+    uint16 constant pV5     = 320;
+    uint16 constant pU      = 352;
     
-    uint16 constant pEval_l1 = 672;
-    
-    uint16 constant pEval_l2 = 704;
-    
-    uint16 constant pEval_l3 = 736;
-    
-    
-    
-    uint16 constant lastMem = 768;
+    uint16 constant pPI      = 384;
+    uint16 constant pEval_r0 = 416;
+    uint16 constant pD       = 448;
+    uint16 constant pF       = 512;
+    uint16 constant pE       = 576;
+    uint16 constant pTmp     = 640;
+    uint16 constant pAlpha2  = 704;
+    uint16 constant pZh      = 736;
+    uint16 constant pZhInv   = 768;
 
-    function verifyProof(bytes memory proof, uint[] memory pubSignals) public view returns (bool) {
+    
+    uint16 constant pEval_l1 = 800;
+    
+    uint16 constant pEval_l2 = 832;
+    
+    uint16 constant pEval_l3 = 864;
+    
+    
+    
+    uint16 constant lastMem = 896;
+
+    function verifyProof(uint256[24] calldata _proof, uint256[3] calldata _pubSignals) public view returns (bool) {
         assembly {
             /////////
             // Computes the inverse using the extended euclidean algorithm
@@ -186,101 +203,153 @@ contract PlonkVerifier {
                 }
             }
             
-            function checkInput(pProof) {
-                if iszero(eq(mload(pProof), 800 )) {
-                    mstore(0, 0)
-                    return(0,0x20)
-                }
-                checkField(mload(add(pProof, pEval_a)))
-                checkField(mload(add(pProof, pEval_b)))
-                checkField(mload(add(pProof, pEval_c)))
-                checkField(mload(add(pProof, pEval_s1)))
-                checkField(mload(add(pProof, pEval_s2)))
-                checkField(mload(add(pProof, pEval_zw)))
-                checkField(mload(add(pProof, pEval_r)))
-
-                // Points are checked in the point operations precompiled smart contracts
+            function checkInput() {
+                checkField(calldataload(pEval_a))
+                checkField(calldataload(pEval_b))
+                checkField(calldataload(pEval_c))
+                checkField(calldataload(pEval_s1))
+                checkField(calldataload(pEval_s2))
+                checkField(calldataload(pEval_zw))
             }
             
-            function calculateChallanges(pProof, pMem, pPublic) {
-            
-                let a
-                let b
+            function calculateChallenges(pMem, pPublic) {
+                let beta
+                let aux
+
+                let mIn := mload(0x40)     // Pointer to the next free memory position
+
+                // Compute challenge.beta & challenge.gamma
+                mstore(mIn, Qmx)
+                mstore(add(mIn, 32), Qmy)
+                mstore(add(mIn, 64), Qlx)
+                mstore(add(mIn, 96), Qly)
+                mstore(add(mIn, 128), Qrx)
+                mstore(add(mIn, 160), Qry)
+                mstore(add(mIn, 192), Qox)
+                mstore(add(mIn, 224), Qoy)
+                mstore(add(mIn, 256), Qcx)
+                mstore(add(mIn, 288), Qcy)
+                mstore(add(mIn, 320), S1x)
+                mstore(add(mIn, 352), S1y)
+                mstore(add(mIn, 384), S2x)
+                mstore(add(mIn, 416), S2y)
+                mstore(add(mIn, 448), S3x)
+                mstore(add(mIn, 480), S3y)
 
                 
-                mstore( add(pMem, 768 ), mload( add( pPublic, 32)))
+                mstore(add(mIn, 512), calldataload(add(pPublic, 0)))
                 
-                mstore( add(pMem, 800 ), mload( add( pPublic, 64)))
+                mstore(add(mIn, 544), calldataload(add(pPublic, 32)))
                 
-                mstore( add(pMem, 832 ), mload( add( pPublic, 96)))
+                mstore(add(mIn, 576), calldataload(add(pPublic, 64)))
                 
-                mstore( add(pMem, 864 ), mload( add( pProof, pA)))
-                mstore( add(pMem, 896 ), mload( add( pProof, add(pA,32))))
-                mstore( add(pMem, 928 ), mload( add( pProof, add(pA,64))))
-                mstore( add(pMem, 960 ), mload( add( pProof, add(pA,96))))
-                mstore( add(pMem, 992 ), mload( add( pProof, add(pA,128))))
-                mstore( add(pMem, 1024 ), mload( add( pProof, add(pA,160))))
+                mstore(add(mIn, 608 ), calldataload(pA))
+                mstore(add(mIn, 640 ), calldataload(add(pA, 32)))
+                mstore(add(mIn, 672 ), calldataload(pB))
+                mstore(add(mIn, 704 ), calldataload(add(pB, 32)))
+                mstore(add(mIn, 736 ), calldataload(pC))
+                mstore(add(mIn, 768 ), calldataload(add(pC, 32)))
                 
-                b := mod(keccak256(add(pMem, lastMem), 288), q) 
-                mstore( add(pMem, pBeta), b)
-                mstore( add(pMem, pGamma), mod(keccak256(add(pMem, pBeta), 32), q))
-                mstore( add(pMem, pAlpha), mod(keccak256(add(pProof, pZ), 64), q))
+                beta := mod(keccak256(mIn, 800), q) 
+                mstore(add(pMem, pBeta), beta)
+
+                // challenges.gamma
+                mstore(add(pMem, pGamma), mod(keccak256(add(pMem, pBeta), 32), q))
                 
-                a := mod(keccak256(add(pProof, pT1), 192), q)
-                mstore( add(pMem, pXi), a)
-                mstore( add(pMem, pBetaXi), mulmod(b, a, q))
+                // challenges.alpha
+                mstore(mIn, mload(add(pMem, pBeta)))
+                mstore(add(mIn, 32), mload(add(pMem, pGamma)))
+                mstore(add(mIn, 64), calldataload(pZ))
+                mstore(add(mIn, 96), calldataload(add(pZ, 32)))
+
+                aux := mod(keccak256(mIn, 128), q)
+                mstore(add(pMem, pAlpha), aux)
+                mstore(add(pMem, pAlpha2), mulmod(aux, aux, q))
+
+                // challenges.xi
+                mstore(mIn, aux)
+                mstore(add(mIn, 32),  calldataload(pT1))
+                mstore(add(mIn, 64),  calldataload(add(pT1, 32)))
+                mstore(add(mIn, 96),  calldataload(pT2))
+                mstore(add(mIn, 128), calldataload(add(pT2, 32)))
+                mstore(add(mIn, 160), calldataload(pT3))
+                mstore(add(mIn, 192), calldataload(add(pT3, 32)))
+
+                aux := mod(keccak256(mIn, 224), q)
+                mstore( add(pMem, pXi), aux)
+
+                // challenges.v
+                mstore(mIn, aux)
+                mstore(add(mIn, 32),  calldataload(pEval_a))
+                mstore(add(mIn, 64),  calldataload(pEval_b))
+                mstore(add(mIn, 96),  calldataload(pEval_c))
+                mstore(add(mIn, 128), calldataload(pEval_s1))
+                mstore(add(mIn, 160), calldataload(pEval_s2))
+                mstore(add(mIn, 192), calldataload(pEval_zw))
+
+                let v1 := mod(keccak256(mIn, 224), q)
+                mstore(add(pMem, pV1), v1)
+
+                // challenges.beta * challenges.xi
+                mstore(add(pMem, pBetaXi), mulmod(beta, aux, q))
+
+                // challenges.xi^n
                 
-                a:= mulmod(a, a, q)
+                aux:= mulmod(aux, aux, q)
                 
-                a:= mulmod(a, a, q)
+                aux:= mulmod(aux, aux, q)
                 
-                a:= mulmod(a, a, q)
+                aux:= mulmod(aux, aux, q)
                 
-                a:= mulmod(a, a, q)
+                aux:= mulmod(aux, aux, q)
                 
-                a:= mulmod(a, a, q)
+                aux:= mulmod(aux, aux, q)
                 
-                a:= mulmod(a, a, q)
+                aux:= mulmod(aux, aux, q)
                 
-                a:= mulmod(a, a, q)
+                aux:= mulmod(aux, aux, q)
                 
-                a:= mulmod(a, a, q)
+                aux:= mulmod(aux, aux, q)
                 
-                a:= mulmod(a, a, q)
+                aux:= mulmod(aux, aux, q)
                 
-                a:= mulmod(a, a, q)
+                aux:= mulmod(aux, aux, q)
                 
-                a:= mulmod(a, a, q)
+                aux:= mulmod(aux, aux, q)
                 
-                a:= mulmod(a, a, q)
+                aux:= mulmod(aux, aux, q)
                 
-                a:= mulmod(a, a, q)
+                aux:= mulmod(aux, aux, q)
                 
-                a:= mulmod(a, a, q)
+                aux:= mulmod(aux, aux, q)
                 
-                mstore( add(pMem, pXin), a)
-                a:= mod(add(sub(a, 1),q), q)
-                mstore( add(pMem, pZh), a)
-                mstore( add(pMem, pZhInv), a)  // We will invert later together with lagrange pols
-                
-                let v1 := mod(keccak256(add(pProof, pEval_a), 224), q)
-                mstore( add(pMem, pV1), v1)
-                a := mulmod(v1, v1, q)
-                mstore( add(pMem, pV2), a)
-                a := mulmod(a, v1, q)
-                mstore( add(pMem, pV3), a)
-                a := mulmod(a, v1, q)
-                mstore( add(pMem, pV4), a)
-                a := mulmod(a, v1, q)
-                mstore( add(pMem, pV5), a)
-                a := mulmod(a, v1, q)
-                mstore( add(pMem, pV6), a)
-                
-                mstore( add(pMem, pU), mod(keccak256(add(pProof, pWxi), 128), q))
+                mstore(add(pMem, pXin), aux)
+
+                // Zh
+                aux:= mod(add(sub(aux, 1), q), q)
+                mstore(add(pMem, pZh), aux)
+                mstore(add(pMem, pZhInv), aux)  // We will invert later together with lagrange pols
+                                
+                // challenges.v^2, challenges.v^3, challenges.v^4, challenges.v^5
+                aux := mulmod(v1, v1,  q)
+                mstore(add(pMem, pV2), aux)
+                aux := mulmod(aux, v1, q)
+                mstore(add(pMem, pV3), aux)
+                aux := mulmod(aux, v1, q)
+                mstore(add(pMem, pV4), aux)
+                aux := mulmod(aux, v1, q)
+                mstore(add(pMem, pV5), aux)
+
+                // challenges.u
+                mstore(mIn, calldataload(pWxi))
+                mstore(add(mIn, 32), calldataload(add(pWxi, 32)))
+                mstore(add(mIn, 64), calldataload(pWxiw))
+                mstore(add(mIn, 96), calldataload(add(pWxiw, 32)))
+
+                mstore(add(pMem, pU), mod(keccak256(mIn, 128), q))
             }
             
             function calculateLagrange(pMem) {
-
                 let w := 1                
                 
                 mstore(
@@ -402,7 +471,7 @@ contract PlonkVerifier {
 
             }
             
-            function calculatePl(pMem, pPub) {
+            function calculatePI(pMem, pPub) {
                 let pl := 0
                 
                  
@@ -412,7 +481,7 @@ contract PlonkVerifier {
                             pl,  
                             mulmod(
                                 mload(add(pMem, pEval_l1)),
-                                mload(add(pPub, 32)),
+                                calldataload(add(pPub, 0)),
                                 q
                             )
                         ),
@@ -427,7 +496,7 @@ contract PlonkVerifier {
                             pl,  
                             mulmod(
                                 mload(add(pMem, pEval_l2)),
-                                mload(add(pPub, 64)),
+                                calldataload(add(pPub, 32)),
                                 q
                             )
                         ),
@@ -442,7 +511,7 @@ contract PlonkVerifier {
                             pl,  
                             mulmod(
                                 mload(add(pMem, pEval_l3)),
-                                mload(add(pPub, 96)),
+                                calldataload(add(pPub, 64)),
                                 q
                             )
                         ),
@@ -452,93 +521,54 @@ contract PlonkVerifier {
                 )
                 
                 
-                mstore(add(pMem, pPl), pl)
-                
-
+                mstore(add(pMem, pPI), pl)
             }
 
-            function calculateT(pProof, pMem) {
-                let t
-                let t1
-                let t2
-                t := addmod(
-                    mload(add(pProof, pEval_r)), 
-                    mload(add(pMem, pPl)), 
-                    q
-                )
-                
-                t1 := mulmod(
-                    mload(add(pProof, pEval_s1)),
-                    mload(add(pMem, pBeta)),
-                    q
-                )
+            function calculateR0(pMem) {
+                let e1 := mload(add(pMem, pPI))
 
-                t1 := addmod(
-                    t1,
-                    mload(add(pProof, pEval_a)),
-                    q
-                )
-                
-                t1 := addmod(
-                    t1,
+                let e2 :=  mulmod(mload(add(pMem, pEval_l1)), mload(add(pMem, pAlpha2)), q)
+
+                let e3a := addmod(
+                    calldataload(pEval_a),
+                    mulmod(mload(add(pMem, pBeta)), calldataload(pEval_s1), q),
+                    q)
+                e3a := addmod(e3a, mload(add(pMem, pGamma)), q)
+
+                let e3b := addmod(
+                    calldataload(pEval_b),
+                    mulmod(mload(add(pMem, pBeta)), calldataload(pEval_s2), q),
+                    q)
+                e3b := addmod(e3b, mload(add(pMem, pGamma)), q)
+
+                let e3c := addmod(
+                    calldataload(pEval_c),
                     mload(add(pMem, pGamma)),
-                    q
-                )
+                    q)
 
-                t2 := mulmod(
-                    mload(add(pProof, pEval_s2)),
-                    mload(add(pMem, pBeta)),
-                    q
-                )
-
-                t2 := addmod(
-                    t2,
-                    mload(add(pProof, pEval_b)),
-                    q
-                )
+                let e3 := mulmod(mulmod(e3a, e3b, q), e3c, q)
+                e3 := mulmod(e3, calldataload(pEval_zw), q)
+                e3 := mulmod(e3, mload(add(pMem, pAlpha)), q)
+            
+                let r0 := addmod(e1, mod(sub(q, e2), q), q)
+                r0 := addmod(r0, mod(sub(q, e3), q), q)
                 
-                t2 := addmod(
-                    t2,
-                    mload(add(pMem, pGamma)),
-                    q
-                )
-                
-                t1 := mulmod(t1, t2, q)
-                
-                t2 := addmod(
-                    mload(add(pProof, pEval_c)),
-                    mload(add(pMem, pGamma)),
-                    q
-                )
-
-                t1 := mulmod(t1, t2, q)
-                t1 := mulmod(t1, mload(add(pProof, pEval_zw)), q)
-                t1 := mulmod(t1, mload(add(pMem, pAlpha)), q)
-                
-                t2 := mulmod(
-                    mload(add(pMem, pEval_l1)), 
-                    mload(add(pMem, pAlpha)), 
-                    q
-                )
-
-                t2 := mulmod(
-                    t2, 
-                    mload(add(pMem, pAlpha)), 
-                    q
-                )
-
-                t1 := addmod(t1, t2, q)
-                
-                t := mod(sub(add(t, q), t1), q)
-                t := mulmod(t, mload(add(pMem, pZhInv)), q)
-                
-                mstore( add(pMem, pEval_t) , t)
-
+                mstore(add(pMem, pEval_r0) , r0)
             }
             
             function g1_set(pR, pP) {
                 mstore(pR, mload(pP))
                 mstore(add(pR, 32), mload(add(pP,32)))
+            }   
+
+            function g1_setC(pR, x, y) {
+                mstore(pR, x)
+                mstore(add(pR, 32), y)
+            }
+
+            function g1_calldataSet(pR, pP) {
+                mstore(pR,          calldataload(pP))
+                mstore(add(pR, 32), calldataload(add(pP, 32)))
             }
 
             function g1_acc(pR, pP) {
@@ -622,119 +652,157 @@ contract PlonkVerifier {
                 }
             }
 
+            function g1_mulSet(pR, pP, s) {
+                g1_mulSetC(pR, mload(pP), mload(add(pP, 32)), s)
+            }
 
-            function calculateA1(pProof, pMem) {
-                let p := add(pMem, pA1)
-                g1_set(p, add(pProof, pWxi))
-                g1_mulAcc(p, add(pProof, pWxiw), mload(add(pMem, pU)))
+            function calculateD(pMem) {
+                let _pD:= add(pMem, pD)
+                let gamma := mload(add(pMem, pGamma))
+                let mIn := mload(0x40)
+                mstore(0x40, add(mIn, 256)) // d1, d2, d3 & d4 (4*64 bytes)
+
+                g1_setC(_pD, Qcx, Qcy)
+                g1_mulAccC(_pD, Qmx, Qmy, mulmod(calldataload(pEval_a), calldataload(pEval_b), q))
+                g1_mulAccC(_pD, Qlx, Qly, calldataload(pEval_a))
+                g1_mulAccC(_pD, Qrx, Qry, calldataload(pEval_b))
+                g1_mulAccC(_pD, Qox, Qoy, calldataload(pEval_c))            
+
+                let betaxi := mload(add(pMem, pBetaXi))
+                let val1 := addmod(
+                    addmod(calldataload(pEval_a), betaxi, q),
+                    gamma, q)
+
+                let val2 := addmod(
+                    addmod(
+                        calldataload(pEval_b),
+                        mulmod(betaxi, k1, q),
+                        q), gamma, q)
+
+                let val3 := addmod(
+                    addmod(
+                        calldataload(pEval_c),
+                        mulmod(betaxi, k2, q),
+                        q), gamma, q)
+
+                let d2a := mulmod(
+                    mulmod(mulmod(val1, val2, q), val3, q),
+                    mload(add(pMem, pAlpha)),
+                    q
+                )
+
+                let d2b := mulmod(
+                    mload(add(pMem, pEval_l1)),
+                    mload(add(pMem, pAlpha2)),
+                    q
+                )
+
+                // We'll use mIn to save d2
+                g1_calldataSet(add(mIn, 192), pZ)
+                g1_mulSet(
+                    mIn,
+                    add(mIn, 192),
+                    addmod(addmod(d2a, d2b, q), mload(add(pMem, pU)), q))
+
+
+                val1 := addmod(
+                    addmod(
+                        calldataload(pEval_a),
+                        mulmod(mload(add(pMem, pBeta)), calldataload(pEval_s1), q),
+                        q), gamma, q)
+
+                val2 := addmod(
+                    addmod(
+                        calldataload(pEval_b),
+                        mulmod(mload(add(pMem, pBeta)), calldataload(pEval_s2), q),
+                        q), gamma, q)
+    
+                val3 := mulmod(
+                    mulmod(mload(add(pMem, pAlpha)), mload(add(pMem, pBeta)), q),
+                    calldataload(pEval_zw), q)
+    
+
+                // We'll use mIn + 64 to save d3
+                g1_mulSetC(
+                    add(mIn, 64),
+                    S3x,
+                    S3y,
+                    mulmod(mulmod(val1, val2, q), val3, q))
+
+                // We'll use mIn + 128 to save d4
+                g1_calldataSet(add(mIn, 128), pT1)
+
+                g1_mulAccC(add(mIn, 128), calldataload(pT2), calldataload(add(pT2, 32)), mload(add(pMem, pXin)))
+                let xin2 := mulmod(mload(add(pMem, pXin)), mload(add(pMem, pXin)), q)
+                g1_mulAccC(add(mIn, 128), calldataload(pT3), calldataload(add(pT3, 32)) , xin2)
+                
+                g1_mulSetC(add(mIn, 128), mload(add(mIn, 128)), mload(add(mIn, 160)), mload(add(pMem, pZh)))
+
+                mstore(add(add(mIn, 64), 32), mod(sub(qf, mload(add(add(mIn, 64), 32))), qf))
+                mstore(add(mIn, 160), mod(sub(qf, mload(add(mIn, 160))), qf))
+                g1_acc(_pD, mIn)
+                g1_acc(_pD, add(mIn, 64))
+                g1_acc(_pD, add(mIn, 128))
             }
             
+            function calculateF(pMem) {
+                let p := add(pMem, pF)
+
+                g1_set(p, add(pMem, pD))
+                g1_mulAccC(p, calldataload(pA), calldataload(add(pA, 32)), mload(add(pMem, pV1)))
+                g1_mulAccC(p, calldataload(pB), calldataload(add(pB, 32)), mload(add(pMem, pV2)))
+                g1_mulAccC(p, calldataload(pC), calldataload(add(pC, 32)), mload(add(pMem, pV3)))
+                g1_mulAccC(p, S1x, S1y, mload(add(pMem, pV4)))
+                g1_mulAccC(p, S2x, S2y, mload(add(pMem, pV5)))
+            }
             
-            function calculateB1(pProof, pMem) {
-                let s
-                let s1
-                let p := add(pMem, pB1)
-                
-                // Calculate D
-                s := mulmod( mload(add(pProof, pEval_a)), mload(add(pMem, pV1)), q)
-                g1_mulSetC(p, Qlx, Qly, s)
+            function calculateE(pMem) {
+                let s := mod(sub(q, mload(add(pMem, pEval_r0))), q)
 
-                s := mulmod( s, mload(add(pProof, pEval_b)), q)                
-                g1_mulAccC(p, Qmx, Qmy, s)
+                s := addmod(s, mulmod(calldataload(pEval_a),  mload(add(pMem, pV1)), q), q)
+                s := addmod(s, mulmod(calldataload(pEval_b),  mload(add(pMem, pV2)), q), q)
+                s := addmod(s, mulmod(calldataload(pEval_c),  mload(add(pMem, pV3)), q), q)
+                s := addmod(s, mulmod(calldataload(pEval_s1), mload(add(pMem, pV4)), q), q)
+                s := addmod(s, mulmod(calldataload(pEval_s2), mload(add(pMem, pV5)), q), q)
+                s := addmod(s, mulmod(calldataload(pEval_zw), mload(add(pMem, pU)),  q), q)
 
-                s := mulmod( mload(add(pProof, pEval_b)), mload(add(pMem, pV1)), q)
-                g1_mulAccC(p, Qrx, Qry, s)
-                
-                s := mulmod( mload(add(pProof, pEval_c)), mload(add(pMem, pV1)), q)
-                g1_mulAccC(p, Qox, Qoy, s)
-
-                s :=mload(add(pMem, pV1))
-                g1_mulAccC(p, Qcx, Qcy, s)
-
-                s := addmod(mload(add(pProof, pEval_a)), mload(add(pMem, pBetaXi)), q)
-                s := addmod(s, mload(add(pMem, pGamma)), q)
-                s1 := mulmod(k1, mload(add(pMem, pBetaXi)), q)
-                s1 := addmod(s1, mload(add(pProof, pEval_b)), q)
-                s1 := addmod(s1, mload(add(pMem, pGamma)), q)
-                s := mulmod(s, s1, q)
-                s1 := mulmod(k2, mload(add(pMem, pBetaXi)), q)
-                s1 := addmod(s1, mload(add(pProof, pEval_c)), q)
-                s1 := addmod(s1, mload(add(pMem, pGamma)), q)
-                s := mulmod(s, s1, q)
-                s := mulmod(s, mload(add(pMem, pAlpha)), q)
-                s := mulmod(s, mload(add(pMem, pV1)), q)
-                s1 := mulmod(mload(add(pMem, pEval_l1)), mload(add(pMem, pAlpha)), q)
-                s1 := mulmod(s1, mload(add(pMem, pAlpha)), q)
-                s1 := mulmod(s1, mload(add(pMem, pV1)), q)
-                s := addmod(s, s1, q)
-                s := addmod(s, mload(add(pMem, pU)), q)
-                g1_mulAcc(p, add(pProof, pZ), s)
-                
-                s := mulmod(mload(add(pMem, pBeta)), mload(add(pProof, pEval_s1)), q)
-                s := addmod(s, mload(add(pProof, pEval_a)), q)
-                s := addmod(s, mload(add(pMem, pGamma)), q)
-                s1 := mulmod(mload(add(pMem, pBeta)), mload(add(pProof, pEval_s2)), q)
-                s1 := addmod(s1, mload(add(pProof, pEval_b)), q)
-                s1 := addmod(s1, mload(add(pMem, pGamma)), q)
-                s := mulmod(s, s1, q)
-                s := mulmod(s, mload(add(pMem, pAlpha)), q)
-                s := mulmod(s, mload(add(pMem, pV1)), q)
-                s := mulmod(s, mload(add(pMem, pBeta)), q)
-                s := mulmod(s, mload(add(pProof, pEval_zw)), q)
-                s := mod(sub(q, s), q)
-                g1_mulAccC(p, S3x, S3y, s)
-
-
-                // calculate F
-                g1_acc(p , add(pProof, pT1))
-
-                s := mload(add(pMem, pXin))
-                g1_mulAcc(p, add(pProof, pT2), s)
-                
-                s := mulmod(s, s, q)
-                g1_mulAcc(p, add(pProof, pT3), s)
-                
-                g1_mulAcc(p, add(pProof, pA), mload(add(pMem, pV2)))
-                g1_mulAcc(p, add(pProof, pB), mload(add(pMem, pV3)))
-                g1_mulAcc(p, add(pProof, pC), mload(add(pMem, pV4)))
-                g1_mulAccC(p, S1x, S1y, mload(add(pMem, pV5)))
-                g1_mulAccC(p, S2x, S2y, mload(add(pMem, pV6)))
-                
-                // calculate E
-                s := mload(add(pMem, pEval_t))
-                s := addmod(s, mulmod(mload(add(pProof, pEval_r)), mload(add(pMem, pV1)), q), q)
-                s := addmod(s, mulmod(mload(add(pProof, pEval_a)), mload(add(pMem, pV2)), q), q)
-                s := addmod(s, mulmod(mload(add(pProof, pEval_b)), mload(add(pMem, pV3)), q), q)
-                s := addmod(s, mulmod(mload(add(pProof, pEval_c)), mload(add(pMem, pV4)), q), q)
-                s := addmod(s, mulmod(mload(add(pProof, pEval_s1)), mload(add(pMem, pV5)), q), q)
-                s := addmod(s, mulmod(mload(add(pProof, pEval_s2)), mload(add(pMem, pV6)), q), q)
-                s := addmod(s, mulmod(mload(add(pProof, pEval_zw)), mload(add(pMem, pU)), q), q)
-                s := mod(sub(q, s), q)
-                g1_mulAccC(p, G1x, G1y, s)
-                
-                
-                // Last part of B
-                s := mload(add(pMem, pXi))
-                g1_mulAcc(p, add(pProof, pWxi), s)
-
-                s := mulmod(mload(add(pMem, pU)), mload(add(pMem, pXi)), q)
-                s := mulmod(s, w1, q)
-                g1_mulAcc(p, add(pProof, pWxiw), s)
-
+                g1_mulSetC(add(pMem, pE), G1x, G1y, s)
             }
             
             function checkPairing(pMem) -> isOk {
                 let mIn := mload(0x40)
-                mstore(mIn, mload(add(pMem, pA1)))
-                mstore(add(mIn,32), mload(add(add(pMem, pA1), 32)))
+                mstore(0x40, add(mIn, 576)) // [0..383] = pairing data, [384..447] = pWxi, [448..512] = pWxiw
+
+                let _pWxi := add(mIn, 384)
+                let _pWxiw := add(mIn, 448)
+                let _aux := add(mIn, 512)
+
+                g1_calldataSet(_pWxi, pWxi)
+                g1_calldataSet(_pWxiw, pWxiw)
+
+                // A1
+                g1_mulSet(mIn, _pWxiw, mload(add(pMem, pU)))
+                g1_acc(mIn, _pWxi)
+                mstore(add(mIn, 32), mod(sub(qf, mload(add(mIn, 32))), qf))
+
+                // [X]_2
                 mstore(add(mIn,64), X2x2)
                 mstore(add(mIn,96), X2x1)
                 mstore(add(mIn,128), X2y2)
                 mstore(add(mIn,160), X2y1)
-                mstore(add(mIn,192), mload(add(pMem, pB1)))
-                let s := mload(add(add(pMem, pB1), 32))
-                s := mod(sub(qf, s), qf)
-                mstore(add(mIn,224), s)
+
+                // B1
+                g1_mulSet(add(mIn, 192), _pWxi, mload(add(pMem, pXi)))
+
+                let s := mulmod(mload(add(pMem, pU)), mload(add(pMem, pXi)), q)
+                s := mulmod(s, w1, q)
+                g1_mulSet(_aux, _pWxiw, s)
+                g1_acc(add(mIn, 192), _aux)
+                g1_acc(add(mIn, 192), add(pMem, pF))
+                mstore(add(pMem, add(pE, 32)), mod(sub(qf, mload(add(pMem, add(pE, 32)))), qf))
+                g1_acc(add(mIn, 192), add(pMem, pE))
+
+                // [1]_2
                 mstore(add(mIn,256), G2x2)
                 mstore(add(mIn,288), G2x1)
                 mstore(add(mIn,320), G2y2)
@@ -748,15 +816,16 @@ contract PlonkVerifier {
             let pMem := mload(0x40)
             mstore(0x40, add(pMem, lastMem))
             
-            checkInput(proof)
-            calculateChallanges(proof, pMem, pubSignals)
+            checkInput()
+            calculateChallenges(pMem, _pubSignals)
             calculateLagrange(pMem)
-            calculatePl(pMem, pubSignals)
-            calculateT(proof, pMem)
-            calculateA1(proof, pMem)
-            calculateB1(proof, pMem)
+            calculatePI(pMem, _pubSignals)
+            calculateR0(pMem)
+            calculateD(pMem)
+            calculateF(pMem)
+            calculateE(pMem)
             let isValid := checkPairing(pMem)
-            
+   
             mstore(0x40, sub(pMem, lastMem))
             mstore(0, isValid)
             return(0,0x20)
